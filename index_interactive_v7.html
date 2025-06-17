@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AP1 IT-Ausbildung - Interaktive Lern-Roadmap © Kai Hölters</title>
+    
+    <link rel="stylesheet" href="style_interactive_v2.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="copyright-notice">
+        © 2025 Kai Hölters - Alle Rechte vorbehalten
+    </div>
+
+    <div class="top-bar-controls">
+        <button id="fullscreen-btn" title="Vollbildmodus">⛶</button>
+        <button id="dark-mode-btn" title="Dark-Mode umschalten">🌙</button>
+    </div>
+
+    <div class="popup-overlay" id="mainPopupOverlay" onclick="closeAllPopups()"></div> 
+    
+    <div class="definition-popup" id="definitionPopup">
+        <div class="popup-header">
+            <div class="popup-title" id="popupTitle"></div>
+            <button class="popup-close" onclick="closeAllPopups()">×</button>
+        </div>
+        <div class="popup-content" id="popupContent"></div>
+    </div>
+
+    <div class="flashcard-modal" id="flashcardModal">
+        <div class="flashcard-content-wrapper">
+            <div class="flashcard-header">
+                Lernkarte <span id="flashcardCounter">(1/X)</span>
+                <button class="popup-close flashcard-close" onclick="closeAllPopups()">×</button>
+            </div>
+            <div class="flashcard" onclick="flipFlashcard(this)">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <p>Frage lädt...</p>
+                    </div>
+                    <div class="flashcard-back">
+                        <p>Antwort lädt...</p>
+                        <div class="flashcard-rating">
+                            <button class="leitner-btn leitner-hard" onclick="event.stopPropagation(); rateFlashcard(0)">Schwer</button>
+                            <button class="leitner-btn leitner-medium" onclick="event.stopPropagation(); rateFlashcard(1)">Okay</button>
+                            <button class="leitner-btn leitner-easy" onclick="event.stopPropagation(); rateFlashcard(2)">Einfach</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flashcard-nav">
+                <button id="flashcardPrevBtn" onclick="prevFlashcard()">‹ Vorherige</button>
+            </div>
+        </div>
+    </div>
+    <header class="header">
+        <h1>AP1 IT-Ausbildung</h1>
+        <p>Interaktive Lern-Roadmap für FISI & Anwendungsentwickler</p>
+        <nav class="main-nav">
+            <a href="#roadmap">Roadmap</a>
+            <a href="#learningProfileDashboard">Mein Lernprofil</a>
+            <a href="#quizSection">Quiz</a>
+        </nav>
+        <div class="copyright">© 2025 Kai Hölters - Interaktive Lern-Roadmap | Alle Inhalte urheberrechtlich geschützt</div>
+    </header>
+
+    <main id="roadmap" class="roadmap-container">
+        <section id="progressOverview" class="prüfung-info">
+            <h2>Prüfungsübersicht</h2>
+            <p>Die AP1 findet nach 18 Monaten statt und macht 20% der Gesamtnote aus.</p>
+            <div class="prüfung-stats">
+                <div class="stat-item"><span class="stat-number">90</span><span class="stat-label">Minuten Prüfungszeit</span></div>
+                <div class="stat-item"><span class="stat-number">4</span><span class="stat-label">Aufgaben</span></div>
+                <div class="stat-item"><span class="stat-number">100</span><span class="stat-label">Max. Punkte</span></div>
+                <div class="stat-item"><span class="stat-number">20%</span><span class="stat-label">der Gesamtnote</span></div>
+            </div>
+            <div class="progress-bar">
+                <div id="globalProgressBar" class="progress-fill" style="width: 0%;"></div>
+            </div>
+            <p class="progress-text" id="globalProgressText">0% der Themen abgeschlossen</p>
+        </section>
+
+        <section id="learningProfileDashboard" class="dashboard-section">
+            <h2 class="dashboard-title">Mein Lernprofil</h2>
+            <p class="dashboard-subtitle">Dein persönliches Cockpit für Stärken, Schwächen und anstehende Wiederholungen</p>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" id="totalQuestionsAnswered">0</div>
+                    <div class="stat-label">Fragen beantwortet</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="correctAnswerRate">0%</div>
+                    <div class="stat-label">Erfolgsquote</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value" id="topicsCompleted">0</div>
+                    <div class="stat-label">Themen abgeschlossen</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-value" id="currentStreak">0</div>
+                    <div class="stat-label">Tage Lernstreak</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-widget strengths">
+                    <div class="widget-header">
+                        <div class="widget-icon">💪</div>
+                        <h3>Meine Stärken</h3>
+                    </div>
+                    <div class="widget-content">
+                        <ul id="strengthsList">
+                            <li class="empty-state">
+                                <span class="empty-icon">📚</span>
+                                <span>Noch keine Daten vorhanden</span>
+                                <small>Absolviere Quizze, um deine Stärken zu entdecken!</small>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="widget-footer">
+                        <span class="progress-indicator">Mindestens 80% Erfolgsquote</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-widget weaknesses">
+                    <div class="widget-header">
+                        <div class="widget-icon">🎯</div>
+                        <h3>Verbesserungspotential</h3>
+                    </div>
+                    <div class="widget-content">
+                        <ul id="weaknessesList">
+                            <li class="empty-state">
+                                <span class="empty-icon">💡</span>
+                                <span>Noch keine Schwächen identifiziert</span>
+                                <small>Starte ein Quiz, um zu sehen, wo du dich verbessern kannst!</small>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="widget-footer">
+                        <span class="progress-indicator">Unter 60% Erfolgsquote</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-widget repetition">
+                    <div class="widget-header">
+                        <div class="widget-icon">🔄</div>
+                        <h3>Wiederholungen fällig</h3>
+                    </div>
+                    <div class="widget-content">
+                        <p class="repetition-info">Basierend auf dem Leitner-System deiner Lernkarten</p>
+                        <div id="repetitionList">
+                            <div class="empty-state">
+                                <span class="empty-icon">✨</span>
+                                <span>Keine Wiederholungen fällig</span>
+                                <small>Großartig! Du bist auf dem neuesten Stand!</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="widget-footer">
+                        <button class="review-all-btn" onclick="reviewAllDue()" style="display: none;">
+                            Alle wiederholen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="learning-insights">
+                <h3>Lernfortschritt nach Kategorien</h3>
+                <div class="category-progress" id="categoryProgress">
+                    <div class="empty-state">
+                        <span class="empty-icon">📈</span>
+                        <span>Noch keine Fortschrittsdaten</span>
+                        <small>Beginne mit dem Lernen, um deinen Fortschritt zu verfolgen!</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <div class="filter-controls">
+            <button id="filterAll" class="filter-btn active" onclick="filterTopics(this, {})">Alle anzeigen</button>
+            <button id="filterFisi" class="filter-btn" onclick="filterTopics(this, { fachrichtung: 'fisi' })">Nur FISI</button>
+            <button id="filterAe" class="filter-btn" onclick="filterTopics(this, { fachrichtung: 'ae' })">Nur AE</button>
+        </div>
+
+        <div class="timeline">
+            <div class="month-section">
+                <div class="month-header">Monate 1-3: Grundlagen</div>
+                <div class="timeline-dot"></div>
+                <div class="lernfeld">
+                    <div class="lernfeld-content" onclick="toggleTopics(this, event)">
+                        <div class="lernfeld-number">1</div>
+                        <div class="lernfeld-title">Das Unternehmen und die eigene Rolle im Betrieb</div>
+                        <div class="lernfeld-description">Grundlagen der betrieblichen Organisation, Arbeitsabläufe und die eigene Rolle als IT-Fachkraft verstehen.</div>
+                        <div class="lernfeld-topics">
+                            <div class="topic-grid">
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="betriebsstrukturen" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Betriebsstrukturen <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Organisationsformen, Hierarchien und Geschäftsprozesse verstehen</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Lernziele:</div>
+                                            <div class="detail-content">• Aufbau- und Ablauforganisation unterscheiden<br>• Organigramme lesen und erstellen<br>• Geschäftsprozesse analysieren und dokumentieren<br>• Schnittstellen zwischen Abteilungen identifizieren</div>
+                                        </div>
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('linienorganisation', event)">Linienorganisation, Stabsorganisation und Matrixorganisation</span><br>• <span class="clickable-term" onclick="showDefinition('projektorganisation', event)">Projektorganisation vs. Linienorganisation</span><br>• <span class="clickable-term" onclick="showDefinition('kommunikationswege', event)">Kommunikationswege und Entscheidungsprozesse</span><br>• <span class="clickable-term" onclick="showDefinition('it-abteilung', event)">IT-Abteilung im Unternehmensgefüge</span></div>
+                                        </div>
+                                        <div class="detail-section exam-relevance">
+                                            <div class="detail-title">Geprüft in:</div>
+                                            <div class="detail-content" id="examRelevanceContent-betriebsstrukturen"></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Organisationslehre</span> <span class="skill-tag">Prozessanalyse</span> <span class="skill-tag">Kommunikation</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('betriebsstrukturen', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Betriebsstrukturen</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-betriebsstrukturen', 'Betriebsstrukturen', 'betriebsstrukturen')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-betriebsstrukturen" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="projektmanagement" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Projektmanagement <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Netzplantechnik, Zeitplanung und Ressourcenmanagement</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section"><div class="detail-title">Lernziele:</div><div class="detail-content">• Netzpläne erstellen und analysieren<br> • Kritischen Pfad berechnen<br> • Pufferzeiten ermitteln<br> • Projektzeiten und -kosten kalkulieren</div></div>
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('cpm', event)">CPM</span><br>• <span class="clickable-term" onclick="showDefinition('vorgangsknoten', event)">Vorgangsknoten-Netzpläne</span><br>• <span class="clickable-term" onclick="showDefinition('frueheste-termine', event)">Früheste/späteste Termine</span><br>• <span class="clickable-term" onclick="showDefinition('pufferzeiten', event)">Pufferzeiten</span><br>• <span class="clickable-term" onclick="showDefinition('ressourcenplanung', event)">Ressourcenplanung</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Netzplantechnik</span> <span class="skill-tag">Zeitplanung</span> <span class="skill-tag">Ressourcen</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('projektmanagement', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Projektmanagement</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-projektmanagement', 'Projektmanagement', 'projektmanagement')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-projektmanagement" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="teamarbeit" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">🤝 Teamarbeit <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Kommunikation, Konfliktlösung und agile Methoden</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('teambildungsphasen', event)">Teambildungsphasen</span><br>• <span class="clickable-term" onclick="showDefinition('kommunikationsmodelle', event)">Kommunikationsmodelle</span><br>• <span class="clickable-term" onclick="showDefinition('scrum_kanban', event)">Scrum und Kanban Grundlagen</span><br>• <span class="clickable-term" onclick="showDefinition('feedback-techniken', event)">Feedback-Techniken</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Kommunikation</span> <span class="skill-tag">Scrum</span> <span class="skill-tag">Konfliktmanagement</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('teamarbeit', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Teamarbeit</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-teamarbeit', 'Teamarbeit', 'teamarbeit')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-teamarbeit" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                 <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="rechtliche-grundlagen" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">⚖️ Rechtliche Grundlagen <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Arbeitsrecht, Urheberrecht und IT-relevante Gesetze</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('arbeitszeiten', event)">Arbeitszeiten/Ruhepausen</span><br>• <span class="clickable-term" onclick="showDefinition('software-lizenzen', event)">Software-Lizenzarten</span><br>• <span class="clickable-term" onclick="showDefinition('dsgvo-artikel6', event)">DSGVO Art. 6</span><br>• <span class="clickable-term" onclick="showDefinition('it-sicherheitsgesetz', event)">IT-Sicherheitsgesetz</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Arbeitsrecht</span> <span class="skill-tag">Urheberrecht</span> <span class="skill-tag">DSGVO</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('rechtliche-grundlagen', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Rechtliche Grundlagen</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-rechtliche-grundlagen', 'Rechtliche Grundlagen', 'rechtliche-grundlagen')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-rechtliche-grundlagen" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="month-section">
+                <div class="month-header">Monate 4-6: Hardware & Konfiguration</div>
+                <div class="timeline-dot"></div>
+                <div class="lernfeld">
+                    <div class="lernfeld-content" onclick="toggleTopics(this, event)">
+                        <div class="lernfeld-number">2</div>
+                        <div class="lernfeld-title">Arbeitsplätze nach Kundenwunsch ausstatten</div>
+                        <div class="lernfeld-description">Hard- und Software bedarfsgerecht auswählen, beschaffen und IT-Arbeitsplätze konfigurieren.</div>
+                        <div class="lernfeld-topics">
+                            <div class="topic-grid">
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="hardware-komponenten" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Hardware-Komponenten <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">CPU, RAM, Storage, Mainboards und Leistungsberechnungen</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('hardware-komponenten', event)">CPU, RAM, Storage, Mainboard, Grafikkarten</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Hardware-Analyse</span> <span class="skill-tag">Leistungsberechnung</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('hardware-komponenten', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Hardware-Komponenten</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-hardware-komponenten', 'Hardware-Komponenten', 'hardware-komponenten')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-hardware-komponenten" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="wirtschaftlichkeitsanalyse" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Wirtschaftlichkeitsanalyse <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">TCO, ROI, Amortisation und Make-or-Buy Entscheidungen</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('tco', event)">TCO</span><br>• <span class="clickable-term" onclick="showDefinition('roi', event)">ROI</span><br>• <span class="clickable-term" onclick="showDefinition('amortisation', event)">Amortisationszeiten</span><br>• <span class="clickable-term" onclick="showDefinition('make-or-buy', event)">Make-or-Buy</span><br>• <span class="clickable-term" onclick="showDefinition('energiekosten', event)">Energiekosten</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">TCO-Analyse</span> <span class="skill-tag">ROI-Berechnung</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('wirtschaftlichkeitsanalyse', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Wirtschaftlichkeit</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-wirtschaftlichkeitsanalyse', 'Wirtschaftlichkeitsanalyse', 'wirtschaftlichkeitsanalyse')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-wirtschaftlichkeitsanalyse" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="month-section">
+                <div class="month-header">Monate 7-9: Netzwerke</div>
+                <div class="timeline-dot"></div>
+                <div class="lernfeld">
+                    <div class="lernfeld-content" onclick="toggleTopics(this, event)">
+                        <div class="lernfeld-number">3</div>
+                        <div class="lernfeld-title">Clients in Netzwerke einbinden</div>
+                        <div class="lernfeld-description">Netzwerkgrundlagen verstehen und Clients erfolgreich in bestehende Netzwerkstrukturen integrieren.</div>
+                        <div class="lernfeld-topics">
+                            <div class="topic-grid">
+                                <div class="topic-item" data-fachrichtung="fisi" data-topic-id="ip-adressierung" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">IP-Adressierung <span class="fachrichtung-badge fisi">FISI</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">IPv4/IPv6, Subnetting, VLSM und Netzwerkplanung</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">
+                                                • <span class="clickable-term" onclick="showDefinition('ip-klassen-cidr', event)">IP-Klassen/CIDR</span><br>
+                                                • <span class="clickable-term" onclick="showDefinition('private-ip', event)">Private IP-Bereiche</span><br>
+                                                • <span class="clickable-term" onclick="showDefinition('subnetting', event)">Subnetting</span><br>
+                                                • <span class="clickable-term" onclick="showDefinition('broadcast-netzwerk', event)">Broadcast/Netzwerk-Adresse</span><br>
+                                                • <span class="clickable-term" onclick="showDefinition('ipv6-adresstypen', event)">IPv6 Adresstypen</span>
+                                            </div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">IPv4/IPv6</span> <span class="skill-tag">Subnetting</span> <span class="skill-tag">CIDR</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('ip-adressierung', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: IP-Adressierung</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-ip-adressierung', 'IP-Adressierung', 'ip-adressierung')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-ip-adressierung" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-item" data-fachrichtung="fisi" data-topic-id="netzwerkkomponenten" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Netzwerkkomponenten <span class="fachrichtung-badge fisi">FISI</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Router, Switches, Hubs und deren Funktionsweise</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('netzwerkgeraete-vergleich', event)">Hub</span><br>• <span class="clickable-term" onclick="showDefinition('netzwerkgeraete-vergleich', event)">Switch</span><br>• <span class="clickable-term" onclick="showDefinition('netzwerkgeraete-vergleich', event)">Router</span><br>• <span class="clickable-term" onclick="showDefinition('bridge-stp', event)">Bridge & STP</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Switching</span> <span class="skill-tag">Routing</span> <span class="skill-tag">OSI</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('netzwerkkomponenten', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Netzwerkkomponenten</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-netzwerkkomponenten', 'Netzwerkkomponenten', 'netzwerkkomponenten')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-netzwerkkomponenten" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="osi-modell" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">OSI-Modell <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">7 Schichten, Protokolle und Troubleshooting</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('osi-modell-gesamt', event)">Layer 7</span><br>• <span class="clickable-term" onclick="showDefinition('osi-modell-gesamt', event)">Layer 6</span><br>• <span class="clickable-term" onclick="showDefinition('osi-modell-gesamt', event)">Layer 5</span><br>• <span class="clickable-term" onclick="showDefinition('osi-modell-gesamt', event)">Layer 4</span><br>• <span class="clickable-term" onclick="showDefinition('osi-modell-gesamt', event)">Layer 3</span><br>• <span class="clickable-term" onclick="showDefinition('osi-modell-gesamt', event)">Layer 2</span><br>• <span class="clickable-term" onclick="showDefinition('osi-modell-gesamt', event)">Layer 1</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">OSI-Layer</span> <span class="skill-tag">Protokolle</span> <span class="skill-tag">Troubleshooting</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('osi-modell', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: OSI-Modell</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-osi-modell', 'OSI-Modell', 'osi-modell')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-osi-modell" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="month-section">
+                <div class="month-header">Monate 10-12: Sicherheit</div>
+                <div class="timeline-dot"></div>
+                <div class="lernfeld">
+                    <div class="lernfeld-content" onclick="toggleTopics(this, event)">
+                        <div class="lernfeld-number">4</div>
+                        <div class="lernfeld-title">Schutzbedarfsanalyse im eigenen Arbeitsbereich</div>
+                        <div class="lernfeld-description">IT-Sicherheitskonzepte verstehen, Schutzbedarfe analysieren und Maßnahmen ableiten.</div>
+                        <div class="lernfeld-topics">
+                            <div class="topic-grid">
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="schutzziele-cia" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Schutzziele (CIA) <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Vertraulichkeit, Integrität, Verfügbarkeit und Authentizität</div>
+                                    <div class="topic-details">
+                                         <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('schutzziele-cia', event)">Vertraulichkeit, Integrität, Verfügbarkeit, Authentizität, Schutzbedarfskategorien</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">CIA-Triade</span> <span class="skill-tag">Schutzbedarfsanalyse</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('schutzziele-cia', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Schutzziele (CIA)</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-schutzziele-cia', 'Schutzziele (CIA)', 'schutzziele-cia')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-schutzziele-cia" class="embedded-quiz-area"></div>
+                                        </div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Interaktive Übung: Schutzziele</h4>
+                                            <div id="interactiveExercise-schutzziele" class="interactive-exercise-area">
+                                                <p>Vervollständige den Satz: Der Schutz vor unbefugter Veränderung von Daten wird als <input type="text" class="fill-in-blank" data-answer="Integrität" /> bezeichnet.</p>
+                                                <button class="topic-action-btn" onclick="checkInteractiveExercise('interactiveExercise-schutzziele')">Prüfen</button>
+                                                <div class="exercise-feedback"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="backup-konzepte" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Backup-Konzepte <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">3-2-1 Regel, Backup-Arten und Wiederherstellungsstrategien</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('backup-konzepte', event)">Vollbackup, Inkrementell, Differenziell</span><br>• <span class="clickable-term" onclick="showDefinition('321-regel', event)">3-2-1 Backup-Regel</span><br>• <span class="clickable-term" onclick="showDefinition('rto-rpo', event)">RTO und RPO</span><br>• <span class="clickable-term" onclick="showDefinition('snapshot-technologie', event)">Snapshot-Technologie</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Backup</span> <span class="skill-tag">RTO/RPO</span> <span class="skill-tag">Recovery</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('backup-konzepte', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Backup-Konzepte</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-backup-konzepte', 'Backup-Konzepte', 'backup-konzepte')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-backup-konzepte" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="month-section">
+                <div class="month-header">Monate 13-15: Software & Daten</div>
+                <div class="timeline-dot"></div>
+                <div class="lernfeld">
+                    <div class="lernfeld-content" onclick="toggleTopics(this, event)">
+                        <div class="lernfeld-number">5</div>
+                        <div class="lernfeld-title">Software zur Verwaltung von Daten anpassen</div>
+                        <div class="lernfeld-description">Softwarelösungen anpassen, für die Datenverwaltung optimieren und Programmiergrundlagen anwenden.</div>
+                        <div class="lernfeld-topics">
+                            <div class="topic-grid">
+                                <div class="topic-item" data-fachrichtung="ae" data-topic-id="datenbanken" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Datenbanken <span class="fachrichtung-badge ae">AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Relationale Datenbanken, SQL, Normalisierung und Datenbankdesign</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('er-diagramme', event)">ER-Diagramme</span><br>• <span class="clickable-term" onclick="showDefinition('datenbankdesign', event)">Datenbankdesign & Normalisierung</span><br>• <span class="clickable-term" onclick="showDefinition('sql-grundlagen', event)">SQL-Grundlagen, Joins & Keys</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">SQL</span> <span class="skill-tag">ER-Modell</span> <span class="skill-tag">Normalformen</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('datenbanken', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Datenbanken</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-datenbanken', 'Datenbanken', 'datenbanken')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-datenbanken" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="topic-item" data-fachrichtung="ae" data-topic-id="programmierlogik" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Programmierlogik <span class="fachrichtung-badge ae">AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Algorithmen, Datenstrukturen und Kontrollstrukturen</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('programmierlogik', event)">Kontrollstrukturen, Schleifen, Arrays/Listen, Funktionen/Parameter, Algorithmus-Komplexität</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Algorithmen</span> <span class="skill-tag">Datenstrukturen</span> <span class="skill-tag">OOP</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('programmierlogik', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Programmierlogik</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-programmierlogik', 'Programmierlogik', 'programmierlogik')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-programmierlogik" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="month-section">
+                <div class="month-header">Monate 16-18: Service & Prüfungsvorbereitung</div>
+                <div class="timeline-dot"></div>
+                <div class="lernfeld">
+                    <div class="lernfeld-content" onclick="toggleTopics(this, event)">
+                        <div class="lernfeld-number">6</div>
+                        <div class="lernfeld-title">Serviceanfragen bearbeiten</div>
+                        <div class="lernfeld-description">Kundenservice professionell abwickeln, Serviceanfragen strukturiert bearbeiten und dokumentieren.</div>
+                        <div class="lernfeld-topics">
+                            <div class="topic-grid">
+                                <div class="topic-item" data-fachrichtung="fisi ae" data-topic-id="kundenberatung" onclick="toggleDetails(this, event)">
+                                    <div class="topic-title">Kundenberatung <span class="fachrichtung-badge both">FISI + AE</span><span class="expand-icon">▼</span><input type="checkbox" class="topic-checkbox" onchange="toggleTopicCompletion(this, event);" /></div>
+                                    <div class="topic-preview">Kommunikationstechniken und professionelle Kundenbetreuung</div>
+                                    <div class="topic-details">
+                                        <div class="detail-section">
+                                            <div class="detail-title">Prüfungsrelevante Inhalte:</div>
+                                            <div class="detail-content">• <span class="clickable-term" onclick="showDefinition('kundenberatung', event)">Aktives Zuhören, 4-Ohren-Modell, Fragetechniken, Einwandbehandlung, Zielgruppengerechte Komm.</span></div>
+                                        </div>
+                                        <div class="skill-tags"><span class="skill-tag">Kommunikation</span> <span class="skill-tag">Beratung</span> <span class="skill-tag">Konfliktlösung</span></div>
+                                        <div class="topic-actions"><button class="topic-action-btn flashcard-btn" onclick="event.stopPropagation(); showFlashcardModal('kundenberatung', true)">Lernkarten</button></div>
+                                        <div class="mini-quiz-container">
+                                            <h4>Mini-Quiz: Kundenberatung</h4>
+                                            <button class="mini-quiz-btn topic-action-btn" onclick="event.stopPropagation(); renderEmbeddedMiniQuiz('miniQuiz-kundenberatung', 'Kundenberatung', 'kundenberatung')">Mini-Quiz starten</button>
+                                            <div id="miniQuiz-kundenberatung" class="embedded-quiz-area"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+
+        <section class="prüfung-info">
+            <h2>Intensive Prüfungsvorbereitung</h2>
+            <p>In den letzten 4 Wochen vor der AP1 solltest du dich gezielt auf die Prüfung fokussieren:</p>
+            <div class="topic-grid" style="margin-top: 20px;">
+                <div class="topic-item preparation-tip"> <div class="topic-title">Zeitmanagement üben</div> <div class="topic-preview">90 Minuten für 4 Aufgaben = ca. 22 Min pro Aufgabe</div> </div>
+                <div class="topic-item preparation-tip"> <div class="topic-title">Prüfungsaufgaben analysieren</div> <div class="topic-preview">Vergangene Aufgaben lösen und Muster erkennen</div> </div>
+                <div class="topic-item preparation-tip"> <div class="topic-title">Formeln und Berechnungen</div> <div class="topic-preview">Netzplantechnik, TCO, Energiekosten sicher beherrschen</div> </div>
+                <div class="topic-item preparation-tip"> <div class="topic-title">Verknüpfung der Themen</div> <div class="topic-preview">Ganzheitliche Sicht auf IT-Projekte entwickeln</div> </div>
+            </div>
+        </section>
+    </main> 
+
+<section class="pruefung-container" id="ihkPruefungSimulation">
+    <h2>IHK Abschlussprüfung Sommer 2024 (Simulation)</h2>
+    <div class="pruefung-meta">
+        <span><b>Beruf:</b> Fachinformatiker Systemintegration</span>
+        <span><b>Prüfungsteil:</b> 2 - Analyse und Entwicklung von Netzwerken</span>
+        <span><b>Zeit:</b> 90 Minuten</span>
+    </div>
+
+    <article class="pruefung-block anlage">
+        <h3>Anlage 1: Netzwerkplan (Textliche Darstellung)</h3>
+        <table class="config-tabelle">
+            <thead>
+                <tr><th>Gerät / Segment</th><th>Konfiguration</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><b>Zentraler Router</b></td><td><ul><li>Interface WAN: IP <code>203.0.113.65/30</code></li><li>Interface LAN: IP <code>172.16.0.254</code>, SNM <code>255.255.0.0</code></li><li>Interface DMZ: IP <code>10.10.0.1</code>, SNM <code>255.255.255.192</code></li></ul></td></tr>
+                <tr><td><b>LAN</b></td><td>Netz-ID: <code>172.16.0.0/16</code>, Default Gateway: <code>172.16.0.254</code><ul><li>Dateiserver: IP <code>172.16.1.51</code></li><li>Domain Controller / DHCP: IP <code>172.16.1.11</code></li><li>Access Point: IP <code>172.16.2.1</code></li><li>Client 1: IP <code>172.16.10.1</code></li></ul></td></tr>
+                <tr><td><b>DMZ</b></td><td>Netz-ID: <code>10.10.0.0/26</code>, Default Gateway: <code>10.10.0.1</code><ul><li>Webserver: IP <code>10.10.0.10</code></li><li>Mailserver: IP <code>10.10.0.11</code></li></ul></td></tr>
+                <tr><td><b>Externer Server</b></td><td><ul><li>www.ihk.de: IP <code>51.38.104.145</code></li></ul></td></tr>
+            </tbody>
+        </table>
+    </article>
+
+    <article class="pruefung-aufgabe">
+        <h4>1. Aufgabe <span class="punkte">(28 Punkte)</span></h4>
+        <div class="teilaufgabe">
+            <p><b>aa)</b> Vervollständigen Sie die Routing-Tabelle. (4 Punkte)</p>
+            <table class="antwort-tabelle">
+                <thead><tr><th>Netz-ID</th><th>Subnetzmaske</th><th>Next-Hop/Interface</th></tr></thead>
+                <tbody>
+                    <tr><td><input type="text" id="task1aa_net1"></td><td><input type="text" id="task1aa_mask1"></td><td>WAN</td></tr>
+                    <tr><td><input type="text" id="task1aa_net2"></td><td><input type="text" id="task1aa_mask2"></td><td>LAN</td></tr>
+                    <tr><td><input type="text" id="task1aa_net3"></td><td><input type="text" id="task1aa_mask3"></td><td>DMZ</td></tr>
+                </tbody>
+            </table>
+            <div class="musterloesung" id="solution1aa"></div>
+        </div>
+        <div class="teilaufgabe"><p><b>ab)</b> Ermitteln Sie die Broadcast-Adressen der drei Netze (WAN, LAN, DMZ). (3 Punkte)</p><textarea id="task1ab" rows="3"></textarea><div class="musterloesung" id="solution1ab"></div></div>
+        <div class="teilaufgabe"><p><b>ac)</b> Erläutern Sie Unicast, Multicast, Broadcast mit Beispielen. (6 Punkte)</p><textarea id="task1ac" rows="5"></textarea><div class="musterloesung" id="solution1ac"></div></div>
+        <div class="teilaufgabe"><p><b>ad)</b> Geben Sie den IPv4-Multicast-Adressbereich an. (4 Punkte)</p><textarea id="task1ad" rows="2"></textarea><div class="musterloesung" id="solution1ad"></div></div>
+        <div class="teilaufgabe"><p><b>ba)</b> Erläutern Sie die nötige Router-Konfiguration für die Erreichbarkeit der Server. (3 Punkte)</p><textarea id="task1ba" rows="3"></textarea><div class="musterloesung" id="solution1ba"></div></div>
+        <div class="teilaufgabe"><p><b>bb)</b> Ergänzen Sie die Adressen des Pakets nach dem Verlassen des Routers. (4 Punkte)</p><table class="antwort-tabelle"><tbody><tr><td><b>Source-IP</b></td><td><input type="text" id="task1bb_src"></td></tr><tr><td><b>Destination-IP</b></td><td><input type="text" id="task1bb_dest"></td></tr></tbody></table></div>
+        <div class="teilaufgabe"><p><b>bc)</b> Erläutern Sie die Gateway-Entscheidung von Client 1. (2 Punkte)</p><textarea id="task1bc" rows="3"></textarea><div class="musterloesung" id="solution1bc"></div></div>
+        <div class="teilaufgabe"><p><b>bd)</b> Erläutern Sie den Einsatz von ARP durch Client 1. (2 Punkte)</p><textarea id="task1bd" rows="3"></textarea><div class="musterloesung" id="solution1bd"></div></div>
+    </article>
+
+    <article class="pruefung-aufgabe">
+        <h4>2. Aufgabe <span class="punkte">(22 Punkte)</span></h4>
+        <div class="teilaufgabe"><p><b>a)</b> Ein Client hat die IP <code>169.254.93.253</code>. <b>aa)</b> Erläutern Sie einen Grund dafür. (4 Punkte)</p><textarea id="task2aa" rows="2"></textarea><div class="musterloesung" id="solution2aa"></div></div>
+        <div class="teilaufgabe"><p><b>ab)</b> Die IPv6 ist <code>fe80::4257:a46c:5622:bb4</code>. Beschreiben Sie Adresstyp und Bildung. (4 Punkte)</p><textarea id="task2ab" rows="3"></textarea><div class="musterloesung" id="solution2ab"></div></div>
+        <div class="teilaufgabe"><p><b>ac)</b> Beschreiben Sie einen Lösungsweg für eine funktionierende Konfiguration. (3 Punkte)</p><textarea id="task2ac" rows="2"></textarea><div class="musterloesung" id="solution2ac"></div></div>
+        <div class="teilaufgabe"><p><b>b)</b> Ein Notebook hat Internet, aber keinen Zugriff auf lokale Server. Der DNS-Server ist <code>8.8.8.8</code>. <b>ba)</b> Erläutern Sie die Fehlerursache. (2 Punkte)</p><textarea id="task2ba" rows="2"></textarea><div class="musterloesung" id="solution2ba"></div></div>
+        <div class="teilaufgabe"><p><b>bb)</b> Beschreiben Sie einen Lösungsweg. (3 Punkte)</p><textarea id="task2bb" rows="2"></textarea><div class="musterloesung" id="solution2bb"></div></div>
+        <div class="teilaufgabe"><p><b>c)</b> Telnet zu Port 143 liefert <code>OK [CAPABILITY...STARTTLS AUTH=PLAIN...]</code>. Bestimmen Sie die manuellen Mail-Einstellungen. (6 Punkte)</p><table class="antwort-tabelle"><tbody><tr><td><b>ca) Protokoll</b></td><td><input type="text" id="task2ca"></td></tr><tr><td><b>cb) Verbindungssicherheit</b></td><td><input type="text" id="task2cb"></td></tr><tr><td><b>cc) Authentifizierung</b></td><td><input type="text" id="task2cc"></td></tr></tbody></table></div>
+    </article>
+
+    <article class="pruefung-aufgabe">
+        <h4>3. Aufgabe <span class="punkte">(24 Punkte)</span></h4>
+        <div class="teilaufgabe"><p><b>aa)</b> Beschreiben Sie, warum ein Wechsel auf IPv6 für Provider sinnvoll ist. (2 Punkte)</p><textarea id="task3aa" rows="2"></textarea><div class="musterloesung" id="solution3aa"></div></div>
+        <div class="teilaufgabe"><p><b>ab)</b> Erläutern Sie drei weitere Vorteile von IPv6. (6 Punkte)</p><textarea id="task3ab" rows="4"></textarea><div class="musterloesung" id="solution3ab"></div></div>
+        <div class="teilaufgabe"><p><b>ba)</b> Nennen Sie zwei Gründe für Subnetze in einem IPv6-Netz. (2 Punkte)</p><textarea id="task3ba" rows="2"></textarea><div class="musterloesung" id="solution3ba"></div></div>
+        <div class="teilaufgabe"><p><b>bb)</b> Bilden Sie aus <code>2001:DB8:CAFE::/48</code> vier gleich große Subnetze und geben Sie deren Netz-Adressen an. (8 Punkte)</p><textarea id="task3bb" rows="4"></textarea><div class="musterloesung" id="solution3bb"></div></div>
+        <div class="teilaufgabe"><p><b>ca)</b> Erläutern Sie die Funktionsweise von SLAAC. (3 Punkte)</p><textarea id="task3ca" rows="3"></textarea><div class="musterloesung" id="solution3ca"></div></div>
+        <div class="teilaufgabe"><p><b>cb)</b> Nennen Sie drei Gründe, dennoch einen DHCPv6-Server zu betreiben. (3 Punkte)</p><textarea id="task3cb" rows="3"></textarea><div class="musterloesung" id="solution3cb"></div></div>
+    </article>
+
+    <article class="pruefung-aufgabe">
+        <h4>4. Aufgabe <span class="punkte">(26 Punkte)</span></h4>
+        <div class="teilaufgabe"><p><b>aa)</b> Nennen Sie drei Nachteile von „WPA2 Personal“. (3 Punkte)</p><textarea id="task4aa" rows="3"></textarea><div class="musterloesung" id="solution4aa"></div></div>
+        <div class="teilaufgabe"><p><b>ab)</b> Erläutern Sie eine Möglichkeit zur Verbesserung der WLAN-Sicherheit. (2 Punkte)</p><textarea id="task4ab" rows="2"></textarea><div class="musterloesung" id="solution4ab"></div></div>
+        <div class="teilaufgabe"><p><b>ba)</b> Begründen Sie mit drei Beispielen, warum ein separates Gäste-WLAN sinnvoll ist. (3 Punkte)</p><textarea id="task4ba" rows="3"></textarea><div class="musterloesung" id="solution4ba"></div></div>
+        <div class="teilaufgabe"><p><b>bb)</b> 2,4-GHz-Kameras verbinden sich nicht mit neuen APs. Nennen Sie zwei mögliche Ursachen. (2 Punkte)</p><textarea id="task4bb" rows="2"></textarea><div class="musterloesung" id="solution4bb"></div></div>
+        <div class="teilaufgabe"><p><b>ca)</b> Erläutern Sie drei der Begriffe: SSID, BSSID, CHANNEL, BW[MHz], SECURITY, SIGNAL. (6 Punkte)</p><textarea id="task4ca" rows="4"></textarea><div class="musterloesung" id="solution4ca"></div></div>
+         <div class="teilaufgabe"><p><b>cb)</b> Nennen Sie Gründe für Performanceprobleme anhand des WLAN-Scans aus der Prüfung. (2 Punkte)</p><textarea id="task4cb" rows="2"></textarea><div class="musterloesung" id="solution4cb"></div></div>
+        <div class="teilaufgabe"><p><b>cc)</b> Erläutern Sie, warum ein WLAN als `&lt;hidden&gt;` markiert ist. (2 Punkte)</p><textarea id="task4cc" rows="2"></textarea><div class="musterloesung" id="solution4cc"></div></div>
+        <div class="teilaufgabe"><p><b>d)</b> Für Gäste soll ein WLAN-Ticketsystem (Voucher) eingerichtet werden. <b>da)</b> Erläutern Sie das System. (3 Punkte)</p><textarea id="task4da" rows="3"></textarea><div class="musterloesung" id="solution4da"></div></div>
+        <div class="teilaufgabe"><p><b>db)</b> Nennen Sie drei weitere Möglichkeiten solcher Systeme. (3 Punkte)</p><textarea id="task4db" rows="3"></textarea><div class="musterloesung" id="solution4db"></div></div>
+    </article>
+
+    <button class="primary-btn" onclick="validateExam()">Prüfung auswerten</button>
+</section>
+
+    <script src="questions.js"></script>
+    <script src="definitions.js"></script>
+    <script src="script_interactive_v4.js"></script>
+</body>
+</html>
